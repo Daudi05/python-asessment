@@ -1,182 +1,133 @@
 
 
-def is_letter_or_digit(char):
-    if char >= 'a' and char <= 'z':
-        return True
-    if char >= 'A' and char <= 'Z':
-        return True
-    if char >= '0' and char <= '9':
-        return True
-    return False
+# pythonAssessment.py
 
-
-def to_lower(text):
-    result = ""
-    i = 0
-    while i < len(text):
-        c = text[i]
-        if c >= 'A' and c <= 'Z':
-            result += chr(ord(c) + 32)
-        else:
-            result += c
-        i += 1
-    return result
-
-
-def extract_words(text):
-    words = []
-    current = ""
-    i = 0
-
-    while i < len(text):
-        c = text[i]
-        if is_letter_or_digit(c):
-            current += c
-        else:
-            if current != "":
-                words.append(current)
-                current = ""
-        i += 1
-
-    if current != "":
-        words.append(current)
-
-    return words
-
-
-def is_blank(text):
-    i = 0
-    while i < len(text):
-        if text[i] != ' ' and text[i] != '\n' and text[i] != '\t':
-            return False
-        i += 1
-    return True
-
-
-
-def count_specific_word(text: str, search_word: str) -> int:
-    if text == "" or search_word == "":
+def count_specific_word(text, search_word):
+    """Counts occurrences of a specific word using while and if."""
+    if not text or not search_word:
         return 0
-
-    words = extract_words(to_lower(text))
-    search_word = to_lower(search_word)
-
+    
     count = 0
-    for word in words:
-        if word == search_word:
+    # Manual split to avoid libraries
+    words = text.lower().split()
+    
+    i = 0
+    while i < len(words):
+        # Clean punctuation from the word
+        word = words[i]
+        cleaned = ""
+        for char in word:
+            if char.isalnum():
+                cleaned += char
+        
+        if cleaned == search_word.lower():
             count += 1
-
+        i += 1
     return count
 
-
-def identify_most_common_word(text: str):
-    if is_blank(text):
+def identify_most_common_word(text):
+    """Identifies the most common word. Returns None for empty string."""
+    if not text or text.strip() == "":
         return None
 
-    words = extract_words(to_lower(text))
-
-    if len(words) == 0:
+    words = text.lower().split()
+    cleaned_words = []
+    for w in words:
+        cw = "".join(c for c in w if c.isalnum())
+        if cw:
+            cleaned_words.append(cw)
+            
+    if not cleaned_words:
         return None
 
-    counts = {}
+    most_common = ""
+    max_count = 0
+    unique_checked = []
+    
+    i = 0
+    while i < len(cleaned_words):
+        word = cleaned_words[i]
+        if word not in unique_checked:
+            current_count = 0
+            for item in cleaned_words:
+                if item == word:
+                    current_count += 1
+            
+            if current_count > max_count:
+                max_count = current_count
+                most_common = word
+            unique_checked.append(word)
+        i += 1
+        
+    return most_common
 
+def calculate_average_word_length(text):
+    """Calculates average word length. Returns 0.0 for empty string."""
+    if not text or text.strip() == "":
+        return 0.0
+
+    words = text.split()
+    total_chars = 0
+    valid_word_count = 0
+    
     i = 0
     while i < len(words):
         word = words[i]
-        if word in counts:
-            counts[word] += 1
-        else:
-            counts[word] = 1
+        cleaned_len = 0
+        for char in word:
+            if char.isalnum():
+                cleaned_len += 1
+        
+        if cleaned_len > 0:
+            total_chars += cleaned_len
+            valid_word_count += 1
         i += 1
-
-    most_common = None
-    highest = 0
-
-    for word in counts:
-        if counts[word] > highest:
-            highest = counts[word]
-            most_common = word
-
-    return most_common
-
-
-def calculate_average_word_length(text: str) -> float:
-    if is_blank(text):
+            
+    if valid_word_count == 0:
         return 0.0
+    return float(total_chars / valid_word_count)
 
-    words = extract_words(text)
-
-    if len(words) == 0:
-        return 0.0
-
-    total = 0
-    i = 0
-
-    while i < len(words):
-        total += len(words[i])
-        i += 1
-
-    return total / len(words)
-
-
-def count_paragraphs(text: str) -> int:
-    if is_blank(text):
+def count_paragraphs(text):
+    """Counts paragraphs based on empty lines. Empty string returns 1."""
+    if not text or text.strip() == "":
         return 1
-
+    
+    # Split by double newline to detect paragraph breaks
+    paragraphs = text.split('\n\n')
     count = 0
-    in_paragraph = False
-    i = 0
-
-    while i < len(text):
-        c = text[i]
-
-        if c != '\n':
-            if not in_paragraph:
-                count += 1
-                in_paragraph = True
-        else:
-            in_paragraph = False
-
-        i += 1
-
-    return count
-
-
-def count_sentences(text: str) -> int:
-    if is_blank(text):
-        return 1
-
-    count = 0
-
-    for c in text:
-        if c == '.' or c == '!' or c == '?':
+    for p in paragraphs:
+        if p.strip() != "":
             count += 1
+            
+    return count if count > 0 else 1
 
-    return count
-
-
-
+def count_sentences(text):
+    """Counts sentences ending in . ! or ? Empty string returns 1."""
+    if not text or text.strip() == "":
+        return 1
+    
+    count = 0
+    i = 0
+    while i < len(text):
+        char = text[i]
+        if char == '.' or char == '!' or char == '?':
+            count += 1
+        i += 1
+    
+    return count if count > 0 else 1
 
 def main():
-    print("\n===== News Article Text Analysis Tool =====\n")
-
-    article = input("Paste your news article text below:\n\n")
-    search_word = input("\nEnter a word to count its occurrences: ")
-
-    word_count = count_specific_word(article, search_word)
-    most_common = identify_most_common_word(article)
-    avg_length = calculate_average_word_length(article)
-    paragraph_count = count_paragraphs(article)
-    sentence_count = count_sentences(article)
-
-    print("\n===== Analysis Results =====")
-    print("Occurrences of '" + search_word + "': " + str(word_count))
-    print("Most common word: " + str(most_common))
-    print("Average word length: " + str(round(avg_length, 2)))
-    print("Number of paragraphs: " + str(paragraph_count))
-    print("Number of sentences: " + str(sentence_count))
-    print("\n===== End of Analysis =====\n")
-
+    # User prompts for input
+    article = input("Enter news article: ")
+    target = input("Enter word to count: ")
+    
+    # Execution
+    print(f"Word Count: {count_specific_word(article, target)}")
+    print(f"Most Common: {identify_most_common_word(article)}")
+    print(f"Average Length: {calculate_average_word_length(article)}")
+    print(f"Paragraphs: {count_paragraphs(article)}")
+    print(f"Sentences: {count_sentences(article)}")
 
 if __name__ == "__main__":
     main()
+
